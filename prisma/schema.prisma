@@ -4,24 +4,23 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String  @unique
   password  String
+  role      String  @default("EMPLOYEE") // ADMIN | EMPLOYEE
+  verified  Boolean @default(false)
   tasks     Task[]
-  createdAt DateTime @default(now())
 }
 
 model Task {
-  id        Int      @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   title     String
-  dueDate   DateTime
-  status    String   @default("BACKLOG")
+  dueDate   String
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  user      User   @relation(fields: [userId], references: [id])
 }
