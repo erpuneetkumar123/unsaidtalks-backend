@@ -1,8 +1,8 @@
-const express = require("express");
-const cors = require("cors");
-const authRoutes = require("./routes/auth.routes");
-const taskRoutes = require("./routes/task.routes");
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+import authRoutes from "./routes/auth.routes.js";
+import taskRoutes from "./routes/task.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -10,15 +10,10 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/admin", adminRoutes);
 
-// ✅ TEST ROUTE
-app.get("/", (req, res) => {
-  res.send("Backend is running");
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log(`Backend running on port ${PORT}`)
+);

@@ -2,6 +2,7 @@
   "name": "todo-app-backend",
   "version": "1.0.0",
   "description": "Backend for Todo App",
+  "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
