@@ -4,9 +4,12 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
 
+// =========================
+// USER MODEL
+// =========================
 model User {
   id        Int     @id @default(autoincrement())
   name      String
@@ -17,10 +20,14 @@ model User {
   tasks     Task[]
 }
 
+// =========================
+// TASK MODEL
+// =========================
 model Task {
   id        Int    @id @default(autoincrement())
   title     String
   dueDate   String
+  status    String @default("PENDING") // PENDING | DONE
   userId    Int
   user      User   @relation(fields: [userId], references: [id])
 }
