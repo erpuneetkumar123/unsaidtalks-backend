@@ -2,3 +2,6 @@
 prisma/dev.db
 prisma/dev.db-journal
 # Environment variables
+.env
+
+/node_modules
