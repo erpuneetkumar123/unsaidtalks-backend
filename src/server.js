@@ -9,10 +9,11 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: ["*","https://unsaidtalks-frontend.vercel.app/"],
+    origin: ["https://unsaidtalks-frontend.vercel.app"],
     credentials: true,
   })
 );
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -23,6 +24,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/admin", adminRoutes);
 
-app.listen(PORT, () =>
-  console.log(`Backend running on port ${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
+});
