@@ -5,58 +5,97 @@ import prisma from "../prismaclient.js";
 
 const router = express.Router();
 
-/* REGISTER */
+/* =====================
+   REGISTER
+===================== */
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
     if (!name || !email || !password) {
-      return res.status(400).json({ error: "Missing fields" });
+      return res.status(400).json({ message: "All fields are required" });
     }
-    const exists = await prisma.user.findUnique({ where: { email } });
-    if (exists) {
-      return res.status(400).json({ error: "Email already registered" });
-    }
-    const hash = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: { name, email, password: hash }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
     });
-    const token = jwt.sign({ id: user.id }, "VERIFY_SECRET", { expiresIn: "2d" });
-    const verifyUrl = `http://localhost:5000/api/auth/verify/${token}`;
-    console.log("Verify your account:", verifyUrl);
-    res.json({ message: "User registered successfully. Verification link logged on backend." });
-  } catch (err) {
-    console.error("Register error:", err);
-    res.status(500).json({ error: "Registration failed" });
+
+    if (existingUser) {
+      return res.status(409).json({ message: "Email already registered" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        verified: true, // 🔥 AUTO VERIFY
+        role: "EMPLOYEE",
+      },
+    });
+
+    return res.status(201).json({
+      message: "Registration successful",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
+    return res.status(500).json({ message: "Registration failed" });
   }
 });
 
-/* VERIFY EMAIL */
-router.get("/verify/:token", async (req, res) => {
-  const data = jwt.verify(req.params.token, "VERIFY_SECRET");
-
-  await prisma.user.update({
-    where: { id: data.id },
-    data: { verified: true }
-  });
-
-  res.send("Email verified. You can login now.");
-});
-
-/* LOGIN */
+/* =====================
+   LOGIN
+===================== */
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) return res.status(400).json({ message: "User not found" });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password required" });
+    }
 
-  // Optional verify check disabled to allow login immediately
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-  const ok = await bcrypt.compare(password, user.password);
-  if (!ok) return res.status(400).json({ message: "Wrong password" });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
-  const token = jwt.sign({ id: user.id, role: user.role }, "JWT_SECRET");
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-  res.json({ token, role: user.role });
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+    return res.status(500).json({ message: "Login failed" });
+  }
 });
 
 export default router;
