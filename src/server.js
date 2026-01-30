@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "*",
+    origin: ["*","https://unsaidtalks-frontend.vercel.app/"],
     credentials: true,
   })
 );
